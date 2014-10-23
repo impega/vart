@@ -71,7 +71,6 @@ instance Foldable NeList where
   foldr cons nil (Nil x)     = cons x nil
   foldr cons nil (Cons x xs) = cons x $ foldr cons nil xs
 
-
 instance Traversable NeList where
   traverse f (Nil x)     = fmap Nil $ f x
   traverse f (Cons x xs) = pure Cons <*> f x <*> traverse f xs
