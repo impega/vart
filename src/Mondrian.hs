@@ -1,50 +1,28 @@
 module Mondrian where
 
-import Prelude hiding (foldr)
-import Control.Applicative
 import Control.Monad
-import Data.Foldable
 import Data.Traversable
-
 import System.Random
 
-data NeList a = Nil a | Cons a (NeList a)
-
-instance Functor NeList where
-  fmap f (Nil x)     = Nil $ f x
-  fmap f (Cons x xs) = f x `Cons` fmap f xs
-
-append :: NeList a -> NeList a -> NeList a
-append (Nil x)     ys = Cons x ys
-append (Cons x xs) ys = Cons x $ append xs ys
-
-instance Monad NeList where
-  return      = Nil
-  Nil x     >>= f = f x
-  Cons x xs >>= f = append (f x) $ xs >>= f
-
-newtype Painting = Painting { grid :: NeList (Int, Column) }
-type Column      = NeList (Int, Either Color Painting)
+newtype Painting = Painting { grid :: [(Int, Column)] }
+type Column      = [(Int, Either Color Painting)]
 data Color       = White | Blue | Yellow | Red
 
-cutNeList :: Int -> NeList (Int, a) -> NeList (Int, a)
-cutNeList m xs@(Nil (n, a))
-  | m <  n = Cons (m, a) $ Nil (n - m, a)
+-- Beware: cutAt is a partial function!
+cutAt :: Int -> [(Int, a)] -> [(Int, a)]
+cutAt m xs@((n, a) : cols)
+  | m <  n = (m, a) : (n - m, a) : cols
   | m == n = xs
-  | n < m  = Cons (n, a) $ Nil (m - n, a)
-cutNeList m xs@(Cons (n, a) cols)
-  | m <  n = Cons (m, a) $ Cons (n - m, a) cols
-  | m == n = xs
-  | n < m  = Cons (n, a) $ cutNeList (m - n) cols
+  | n < m  = (n, a) : cutAt (m - n) cols
 
 cutVertical :: Int -> Painting -> Painting
-cutVertical m = Painting . cutNeList m . grid
+cutVertical m = Painting . cutAt m . grid
 
 cutHorizontal :: Int -> Painting -> Painting
-cutHorizontal m = Painting . fmap (fmap $ cutNeList m) . grid
+cutHorizontal m = Painting . fmap (fmap $ cutAt m) . grid
 
 blankCanvas :: Int -> Int -> Painting
-blankCanvas width height = Painting $ Nil (width, Nil (height, Left White))
+blankCanvas width height = Painting $ [(width, [(height, Left White)])]
 
 instance Show Color where
   show White  = "\x1B[107m \x1B[0m"
@@ -67,18 +45,10 @@ randColor = do
     else if r <= 1.9 then Yellow
     else Red
 
-instance Foldable NeList where
-  foldr cons nil (Nil x)     = cons x nil
-  foldr cons nil (Cons x xs) = cons x $ foldr cons nil xs
-
-instance Traversable NeList where
-  traverse f (Nil x)     = fmap Nil $ f x
-  traverse f (Cons x xs) = pure Cons <*> f x <*> traverse f xs
-
-randColorsColumn :: NeList (Int, Either Color Painting) -> IO (NeList (Int, Either Color Painting))
+randColorsColumn :: [(Int, Either Color Painting)] -> IO [(Int, Either Color Painting)]
 randColorsColumn = traverse (\ (h, _) -> randColor >>= \ c -> return (h, Left c))
 
-randColors :: NeList (Int, Column) -> IO (NeList (Int, Column))
+randColors :: [(Int, Column)] -> IO [(Int, Column)]
 randColors = traverse (\ (w, cols) -> randColorsColumn cols >>= \ cols' -> return (w, cols'))
 
 main :: IO ()
