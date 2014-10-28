@@ -1,5 +1,3 @@
-{-# LANGUAGE RankNTypes #-}
-
 module Export where
 
 import Mondrian
