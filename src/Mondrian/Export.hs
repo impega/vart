@@ -21,23 +21,23 @@ drawPaintingAt x y (Painting canvas) img =
   foldM_ (\ x' (w, cols) ->
          foldM_ (\ y' (h, cell) ->
                 drawCellAt x' y' (w, h, cell) img
-                >> return (y' + 10 * h))
+                >> return (y' + h))
            y cols
-         >> return (x' + 10 * w))
+         >> return (x' + w))
     x canvas
 
 drawCellAt :: PrimMonad m => Int -> Int -> (Int, Int, Either Color Painting) -> Drawing m -> m ()
 drawCellAt x y (_, _, Right painting) img = drawPaintingAt x y painting img
 drawCellAt x y (w, h, Left color)     img =
   let pixel = toRGB8 color in
-  forM_ [x..x+10*w-1] $ do \ i -> forM_ [y..y+10*h-1] $ do \ j -> writePixel img i j pixel
+  forM_ [x..x+w-1] $ do \ i -> forM_ [y..y+h-1] $ do \ j -> writePixel img i j pixel
 
 toImage :: PrimMonad m => Painting -> m (Image PixelRGB8)
 toImage painting = do
   let canvas = grid painting
   let width  = sum $ map fst canvas
   let height = sum $ map fst $ snd $ head canvas
-  image <- createMutableImage (10 * width) (10 * height) $ toRGB8 White
+  image <- createMutableImage width height $ toRGB8 White
   () <- drawPaintingAt 0 0 painting image
   freezeImage image
 

@@ -1,6 +1,7 @@
 module Mondrian where
 
 import Control.Monad
+import Data.List
 import Data.Traversable
 import System.Random
 
@@ -23,6 +24,20 @@ cutVertical m = Painting . cutAt m . grid
 
 cutHorizontal :: Int -> Painting -> Painting
 cutHorizontal m = Painting . fmap (fmap $ cutAt m) . grid
+
+-- We may introduce a grid by adding Black edges between
+-- cells
+insertGrid :: Painting -> Painting
+insertGrid (Painting canvas) =
+  let rhgrid  = fmap (fmap $ \ cols ->
+                 -- first we start by drawing a grid [r]ecursively on subpaintings
+                 let rgrid = fmap (fmap (either Left (Right . insertGrid))) cols
+                 -- then we insert [h]orizontal lines
+                 in intersperse (5, Left Black) rgrid) canvas
+      -- finally we draw the [v]ertical ones
+      height  = sum $ map fst . snd . head $ rhgrid
+      rhvgrid = intersperse (5, [(height, Left Black)]) rhgrid
+  in Painting rhvgrid
 
 -- A blank canvas to start from.
 blankCanvas :: Int -> Int -> Painting
@@ -57,8 +72,5 @@ showPaintingConsol (Painting xs) = foldr ((++) . showCol) "" xs
   where
     showBox (h, zs) = join $ replicate h $ either showColorConsol showPaintingConsol zs
     showCol (w, ys) = join $ replicate w $ foldr ((++) . showBox) "" ys ++ "\n"
-
-
--- More principled one.
 
 
