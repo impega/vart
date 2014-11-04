@@ -53,10 +53,12 @@ randColor = do
     else Red
 
 randColorsColumn :: [(Int, Either Color Painting)] -> IO [(Int, Either Color Painting)]
-randColorsColumn = traverse (\ (h, _) -> randColor >>= \ c -> return (h, Left c))
+randColorsColumn = traverse (traverse $ either dealWithColor dealWithRec)
+  where dealWithColor = const $ fmap Left randColor
+        dealWithRec   = fmap (Right . Painting) . randColors . grid
 
 randColors :: [(Int, Column)] -> IO [(Int, Column)]
-randColors = traverse (\ (w, cols) -> randColorsColumn cols >>= \ cols' -> return (w, cols'))
+randColors = traverse $ traverse randColorsColumn
 
 
 -- Quick and dirty display function to print the first level
