@@ -30,20 +30,34 @@ cutVertical m = Painting . cutAt m . grid
 cutHorizontal :: Int -> Painting -> Painting
 cutHorizontal m = Painting . fmap (fmap $ cutAt m) . grid
 
+cropAt :: Int -> [(Int, a)] -> [(Int, a)]
+cropAt len [] = []
+cropAt len ((n, a) : tl)
+  | n <= len  = (n, a) : cropAt (len - n) tl
+  | len == 0  = []
+  | otherwise = [(len, a)]
+
+crop :: Int -> Int -> Painting -> Painting
+crop w h = Painting . fmap (uncurry cropCol) . cropAt w . grid
+  where
+    cropCol :: Int -> Column -> (Int, Column)
+    cropCol w' = (w',) . fmap (uncurry $ cropCell w') . cropAt h
+    cropCell :: Int -> Int -> Cell -> (Int, Cell)
+    cropCell w' h' = (h',) . fmap (crop w' h')
+
 -- We may introduce a grid by adding Black edges between cells
---
--- BUG: when we insertGrid in subpaintings, *their size increases*
--- and we should therefore propagate this information
 insertGrid :: Painting -> Painting
 insertGrid (Painting canvas) =
-  let rhgrid  = fmap (fmap $ \ cols ->
-                 -- first we start by drawing a grid [r]ecursively on subpaintings
-                 let rgrid = fmap (fmap (fmap insertGrid)) cols
-                 -- then we insert [h]orizontal lines
-                 in intersperse (5, Left Black) rgrid) canvas
-      -- finally we draw the [v]ertical ones
-      height  = sum $ map fst . snd . head $ rhgrid
-      rhvgrid = intersperse (5, [(height, Left Black)]) rhgrid
+  let
+  -- we start by drawing grids [r]ecursively and [h]orizontally
+      rhgrid  =
+        fmap (fmap $ \ cols ->
+             let rgrid = fmap (fmap $ fmap insertGrid) cols
+             in intersperse (5, Left Black) rgrid)
+        canvas
+  -- finally we draw the [v]ertical ones
+      nheight = sum $ map fst . snd . head $ rhgrid
+      rhvgrid = intersperse (5, [(nheight, Left Black)]) rhgrid
   in Painting rhvgrid
 
 -- A blank canvas to start from.

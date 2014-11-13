@@ -5,5 +5,5 @@ import Export
 
 main :: IO ()
 main = do
-  painting <- randPainting 700 900
-  insertGrid painting `toFile` "Oulala.png"
+  painting <- randPainting 1920 1200
+  crop 1920 1200 (insertGrid painting) `toFile` "Oulala.png"
