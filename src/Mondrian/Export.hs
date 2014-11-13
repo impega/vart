@@ -39,7 +39,7 @@ toImage painting = do
   let height = sum $ map fst $ snd $ head canvas
   image <- createMutableImage width height $ toRGB8 White
   () <- drawPaintingAt 0 0 painting image
-  freezeImage image
+  unsafeFreezeImage image
 
 toFile :: Painting -> FilePath -> IO ()
 toFile painting fp = toImage painting >>= savePngImage fp . ImageRGB8
