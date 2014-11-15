@@ -3,7 +3,6 @@
 module Mondrian where
 
 import Prelude              hiding (mapM)
-import Control.Arrow
 import Control.Monad        hiding (mapM)
 import Control.Monad.Random
 import Data.List
@@ -63,6 +62,11 @@ insertGrid (Painting canvas) =
 -- A blank canvas to start from.
 blankCanvas :: Int -> Int -> Painting
 blankCanvas width height = Painting $ [(width, [(height, Left White)])]
+
+randMondrian :: MonadRandom m => Int -> Int -> m Painting
+randMondrian width height = do
+  painting <- randPainting width height
+  return $ crop width height $ insertGrid painting
 
 randPainting :: MonadRandom m => Int -> Int -> m Painting
 randPainting w h = do
