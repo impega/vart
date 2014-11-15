@@ -1,0 +1,5 @@
+language: haskell
+before_install:
+  - "cd Mondrian"
+notifications:
+  email: false
