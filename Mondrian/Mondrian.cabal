@@ -7,7 +7,7 @@ synopsis:            Generating Mondrian-like images, procedurally.
 -- description:         
 homepage:            https://github.com/impega/vart/
 license:             GPL-3
-license-file:        LICENSE
+license-file:        ../LICENSE
 author:              gallais
 maintainer:          guillaume.allais@ens-lyon.org
 -- copyright:           
