@@ -1,6 +1,5 @@
 language: haskell
 ghc: 7.8
-before_install:
-  - "cd Mondrian"
+script: "./build.sh"
 notifications:
   email: false
