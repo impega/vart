@@ -1,2 +1,2 @@
-cd Mondrian           && cabal install && \
-cd ../ExquisiteCorpse && cabal install
+cd Mondrian           && cabal build && \
+cd ../ExquisiteCorpse && cabal build
