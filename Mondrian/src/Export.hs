@@ -1,5 +1,6 @@
 module Export where
 
+import Color
 import Mondrian
 import Codec.Picture
 import Codec.Picture.Types
@@ -8,13 +9,6 @@ import Control.Monad
 import Control.Monad.Primitive
 
 type Drawing m = MutableImage (PrimState m) PixelRGB8
-
-toRGB8 :: Color -> PixelRGB8
-toRGB8 White  = PixelRGB8 255 255 255
-toRGB8 Blue   = PixelRGB8 0 0 255
-toRGB8 Yellow = PixelRGB8 255 255 0
-toRGB8 Red    = PixelRGB8 255 0 0
-toRGB8 Black  = PixelRGB8 0 0 0
 
 drawPaintingAt :: PrimMonad m => Int -> Int -> Painting -> Drawing m -> m ()
 drawPaintingAt x y (Painting canvas) img =
@@ -26,7 +20,7 @@ drawPaintingAt x y (Painting canvas) img =
          >> return (x' + w))
     x canvas
 
-drawCellAt :: PrimMonad m => Int -> Int -> (Int, Int, Either Color Painting) -> Drawing m -> m ()
+drawCellAt :: PrimMonad m => Int -> Int -> (Int, Int, Cell) -> Drawing m -> m ()
 drawCellAt x y (_, _, Right painting) img = drawPaintingAt x y painting img
 drawCellAt x y (w, h, Left color)     img =
   let pixel = toRGB8 color in
@@ -37,11 +31,9 @@ toImage painting = do
   let canvas = grid painting
   let width  = sum $ map fst canvas
   let height = sum $ map fst $ snd $ head canvas
-  image <- createMutableImage width height $ toRGB8 White
+  image <- createMutableImage width height $ toRGB8 (Just White)
   () <- drawPaintingAt 0 0 painting image
   unsafeFreezeImage image
 
 toFile :: Painting -> FilePath -> IO ()
 toFile painting fp = toImage painting >>= savePngImage fp . ImageRGB8
-
-

@@ -18,13 +18,19 @@ cabal-version:       >=1.10
 
 executable Mondrian
   main-is:             Main.hs
-  other-modules:       Mondrian
+
+  other-modules:       Color
                      , Export
+                     , Mondrian
+
   other-extensions:    TupleSections
+
   build-depends:       base >=4.7 && <4.13
                      , JuicyPixels >=3.1 && <3.4
                      , primitive >=0.5 && <0.7
                      , MonadRandom >=0.3 && <0.6
                      , options >=1.2 && <1.3
+
   hs-source-dirs:      src
+
   default-language:    Haskell2010

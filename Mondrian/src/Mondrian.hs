@@ -7,13 +7,13 @@ import Control.Monad        hiding (mapM)
 import Control.Monad.Random
 import Data.List
 import Data.Traversable
+import Color
 
 -- Modelling a painting as a list of lists.
 newtype Painting = Painting { grid :: [(Int, Column)] }
 type Column      = [(Int, Cell)]
 -- A Cell is either a solid color or a a nested painting
-type Cell        = Either Color Painting
-data Color       = White | Blue | Yellow | Red | Black
+type Cell        = Either (Maybe Color) Painting
 
 -- We may introduce a new cut in the painting. If the cut is after the
 -- end of the painting, the impact is null.
@@ -53,16 +53,16 @@ insertGrid (Painting canvas) =
       rhgrid  =
         fmap (fmap $ \ cols ->
              let rgrid = fmap (fmap $ fmap insertGrid) cols
-             in intersperse (5, Left Black) rgrid)
+             in intersperse (5, Left Nothing) rgrid)
         canvas
   -- finally we draw the [v]ertical ones
       nheight = sum $ map fst . snd . head $ rhgrid
-      rhvgrid = intersperse (5, [(nheight, Left Black)]) rhgrid
+      rhvgrid = intersperse (5, [(nheight, Left Nothing)]) rhgrid
   in Painting rhvgrid
 
 -- A blank canvas to start from.
 blankCanvas :: Int -> Int -> Painting
-blankCanvas width height = Painting $ [(width, [(height, Left White)])]
+blankCanvas width height = Painting $ [(width, [(height, Left (Just White))])]
 
 randMondrian :: MonadRandom m => Int -> Int -> m Painting
 randMondrian width height = do
@@ -87,34 +87,11 @@ randCell :: MonadRandom m => Int -> Int -> m Cell
 randCell w h = do
   r <- getRandomR (0, 1.0 :: Float)
   if 10 < h - w && r <= 0.2
-  then liftM Right $ randPainting w h
-  else liftM Left  $ randColor
-
-randColor :: MonadRandom m => m Color
-randColor = do
-  r <- getRandomR (0, 2.0 :: Float)
-  return $
-    if      r <= 1.7 then White
-    else if r <= 1.8 then Blue
-    else if r <= 1.9 then Yellow
-    else Red
+  then liftM Right         $ randPainting w h
+  else liftM (Left . Just) $ randColor
 
 randCells :: MonadRandom m => Painting -> m Painting
 randCells = liftM Painting . mapM (uncurry col) . grid
   where
     col  w   = liftM (w,) . mapM (uncurry $ cell w)
     cell w h = liftM (h,) . const (randCell w h)
-
--- Quick and dirty display function to print the first level
--- paintings in the console using escape codes.
-showColorConsol :: Color -> String
-showColorConsol White  = "\x1B[107m \x1B[0m"
-showColorConsol Blue   = "\x1B[44m \x1B[0m"
-showColorConsol Yellow = "\x1B[43m \x1B[0m"
-showColorConsol Red    = "\x1B[41m \x1B[0m"
-
-showPaintingConsol :: Painting -> String
-showPaintingConsol (Painting xs) = foldr ((++) . showCol) "" xs
-  where
-    showBox (h, zs) = join $ replicate h $ either showColorConsol showPaintingConsol zs
-    showCol (w, ys) = join $ replicate w $ foldr ((++) . showBox) "" ys ++ "\n"
