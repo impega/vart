@@ -8,20 +8,21 @@ import Control.Monad.Random
 import Data.List
 import Data.Traversable
 
--- Modelling a painting as a list of lists. The cell may either be
+-- Modelling a painting as a list of lists.
 newtype Painting = Painting { grid :: [(Int, Column)] }
 type Column      = [(Int, Cell)]
+-- A Cell is either a solid color or a a nested painting
 type Cell        = Either Color Painting
 data Color       = White | Blue | Yellow | Red | Black
 
 -- We may introduce a new cut in the painting. If the cut is after the
 -- end of the painting, the impact is null.
 cutAt :: Int -> [(Int, a)] -> [(Int, a)]
-cutAt _ [] = []
-cutAt m xs@((n, a) : cols)
-  | m <  n = (m, a) : (n - m, a) : cols
-  | m == n = xs
-  | n < m  = (n, a) : cutAt (m - n) cols
+cutAt _ []                 = []
+cutAt m xs@((n, a) : cols) = case compare m n of
+  LT -> (m, a) : (n - m, a) : cols
+  EQ -> xs
+  GT -> (n, a) : cutAt (m - n) cols
 
 cutVertical :: Int -> Painting -> Painting
 cutVertical m = Painting . cutAt m . grid
