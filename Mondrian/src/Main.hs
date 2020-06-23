@@ -5,22 +5,24 @@ import Options
 import Mondrian
 import Export
 
-data MondrianOptions =
-  MondrianOptions { optWidth    :: Int
-                  , optHeight   :: Int
-                  , optFilepath :: FilePath }
+data MondrianOptions = MondrianOptions
+  { optWidth    :: Int
+  , optHeight   :: Int
+  , optFilepath :: FilePath
+  }
 
-shortSimpleOption :: SimpleOptionType a
-                  => Char   -- short flag
-                  -> a      -- default value
-                  -> String -- description
-                  -> DefineOptions a
+shortSimpleOption
+  :: SimpleOptionType a
+  => Char   -- short flag
+  -> a      -- default value
+  -> String -- description
+  -> DefineOptions a
 shortSimpleOption flag def desc =
   defineOption simpleOptionType (\o -> o
-	{ optionShortFlags = [flag]
-	, optionDefault = def
-	, optionDescription = desc
-	})
+        { optionShortFlags = [flag]
+        , optionDefault = def
+        , optionDescription = desc
+        })
 
 instance Options MondrianOptions where
   defineOptions =

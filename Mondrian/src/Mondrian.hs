@@ -117,5 +117,3 @@ showPaintingConsol (Painting xs) = foldr ((++) . showCol) "" xs
   where
     showBox (h, zs) = join $ replicate h $ either showColorConsol showPaintingConsol zs
     showCol (w, ys) = join $ replicate w $ foldr ((++) . showBox) "" ys ++ "\n"
-
-
