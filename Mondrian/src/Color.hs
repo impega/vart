@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiWayIf #-}
+
 module Color where
 
 import Codec.Picture.Types
@@ -9,10 +11,10 @@ randColor :: MonadRandom m => m Color
 randColor = do
   r <- getRandomR (0, 2.0 :: Float)
   return $
-    if      r <= 1.7 then White
-    else if r <= 1.8 then Blue
-    else if r <= 1.9 then Yellow
-    else Red
+    if | r <= 1.7  -> White
+       | r <= 1.8  -> Blue
+       | r <= 1.9  -> Yellow
+       | otherwise -> Red
 
 toRGB8 :: Maybe Color -> PixelRGB8
 toRGB8 (Just c) = case c of
