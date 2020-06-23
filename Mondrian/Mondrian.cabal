@@ -22,6 +22,7 @@ executable Mondrian
   other-modules:       Color
                      , Export
                      , Mondrian
+                     , Mondrian2
 
   other-extensions:    TupleSections
 
