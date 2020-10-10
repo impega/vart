@@ -28,11 +28,16 @@ solid p = do
 
 painting :: MonadRandom m => Frame -> m Painting
 painting p
-  | width p <= 60 && height p <= 60 = solid p
+  | width p <= 200 || height p <= 200 = solid p
+  | (width p >= 500 && height p >= 60) ||
+    (width p >= 60 && height p >= 500) = do
+    r <- getRandomR (0, 20 :: Int)
+    if | r <= 10  -> vcut p
+       | otherwise -> hcut p
   | otherwise = do
-    r <- getRandomR (0, 2.5 :: Float)
-    if | r <= 1.0  -> vcut p
-       | r <= 2.0  -> hcut p
+    r <- getRandomR (0, 25 :: Int)
+    if | r <= 10  -> vcut p
+       | r <= 20  -> hcut p
        | otherwise -> solid p
 
 vcut :: MonadRandom m => Frame -> m Painting
@@ -54,3 +59,6 @@ cut c total frame = do
   part1 <- painting (frame size1)
   part2 <- painting (frame size2)
   pure $ c part1 border part2 <$ frame total
+
+randMondrian :: MonadRandom m => Int -> Int -> m Painting
+randMondrian width height = painting (Painting width height ())

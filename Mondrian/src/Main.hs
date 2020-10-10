@@ -2,8 +2,8 @@ module Main where
 
 import Control.Applicative
 import Options
-import Mondrian
-import Export
+import Mondrian2
+import Export2
 
 data MondrianOptions = MondrianOptions
   { optWidth    :: Int

@@ -72,8 +72,8 @@ randMondrian width height = do
 randPainting :: MonadRandom m => Int -> Int -> m Painting
 randPainting w h = do
   -- pick a number of cuts to make
-  nw <- getRandomR (0 , max 2 $ w `div` 70)
-  nh <- getRandomR (0 , max 2 $ h `div` 70)
+  nw <- getRandomR (0 , max 2 $ w `div` 50)
+  nh <- getRandomR (0 , max 2 $ h `div` 50)
   -- vertical & horizontal cuts
   vc <- liftM (take nw) $ getRandomRs (0, w)
   hc <- liftM (take nh) $ getRandomRs (0, h)
