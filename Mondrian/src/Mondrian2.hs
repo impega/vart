@@ -16,15 +16,26 @@ data Painting' a = Painting
 type Frame    = Painting' ()
 type Painting = Painting' Canvas
 
+data Border = Border
+  { size    :: !Int
+  , visible :: Bool
+  }
+
 data Canvas
-  = VCut Painting !Int Painting -- Left, border, right
-  | HCut Painting !Int Painting -- Top, border, bottom
-  | Solid Color                 -- Base case
+  = VCut Painting Border Painting -- Left, border, right
+  | HCut Painting Border Painting -- Top, border, bottom
+  | Solid Color                   -- Base case
 
 solid :: MonadRandom m => Frame -> m Painting
 solid p = do
   c <- randColor
   pure $ Solid c <$ p
+
+border :: MonadRandom m => m Border
+border = do
+  size    <- getRandomR (5, 20 :: Int)
+  visible <- (0 ==) <$> getRandomR (0, 15 :: Int)
+  pure $ Border size visible
 
 painting :: MonadRandom m => Frame -> m Painting
 painting p
@@ -47,15 +58,16 @@ hcut :: MonadRandom m => Frame -> m Painting
 hcut p = cut HCut (height p) (\ i -> p { height = i })
 
 cut :: MonadRandom m
-    => (Painting -> Int -> Painting -> Canvas) -- How to pack the pieces
+    => (Painting -> Border -> Painting -> Canvas) -- How to pack the pieces
     -- Ideally the two following arguments would be replaced by a lens and a frame
     -> Int            -- Dimension to cut
     -> (Int -> Frame) -- Frame (held by the side to cut)
     -> m Painting
 cut c total frame = do
-  border <- getRandomR (5, 20 :: Int)
-  size1 <- getRandomR (20, total - border - 20)
-  let size2 = total - border - size1
+  border <- border
+  let leftover = total - size border
+  size1 <- getRandomR (20, leftover - 20)
+  let size2 = leftover - size1
   part1 <- painting (frame size1)
   part2 <- painting (frame size2)
   pure $ c part1 border part2 <$ frame total

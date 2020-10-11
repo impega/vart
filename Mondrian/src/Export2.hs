@@ -19,17 +19,20 @@ drawSolidAt x y p img = do
     forM_ [y..yrange] $ \ j ->
       writePixel img i j pixel
 
+borderColor :: Border -> Maybe Color
+borderColor b = White <$ guard (visible b)
+
 drawPaintingAt :: PrimMonad m => Int -> Int -> Painting -> Drawing m -> m ()
 drawPaintingAt x y p i = case canvas p of
   Solid c    -> drawSolidAt x y (Just c <$ p) i
   VCut l m r -> do
     drawPaintingAt x y l i
-    drawSolidAt (x + width l) y (Painting m (height p) Nothing) i
-    drawPaintingAt (x + width l + m) y r i
+    drawSolidAt (x + width l) y (Painting (size m) (height p) (borderColor m)) i
+    drawPaintingAt (x + width l + size m) y r i
   HCut t m b -> do
     drawPaintingAt x y t i
-    drawSolidAt x (y + height t) (Painting (width p) m Nothing) i
-    drawPaintingAt x (y + height t + m) b i
+    drawSolidAt x (y + height t) (Painting (width p) (size m) (borderColor m)) i
+    drawPaintingAt x (y + height t + size m) b i
 
 toImage :: PrimMonad m => Painting -> m (Image PixelRGB8)
 toImage painting = do
